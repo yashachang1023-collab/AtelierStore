@@ -5,6 +5,7 @@ import com.atelier.atelierstore.exception.OutOfStockException;
 import com.atelier.atelierstore.model.Illustration;
 import com.atelier.atelierstore.model.Stationery;
 import com.atelier.atelierstore.service.InventoryService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,9 +25,9 @@ public class ProductController {
 
    //add illustrations
    @PostMapping("/gallery")
-   public String addIllustration(@RequestBody Illustration illustration){
-       inventoryService.addIllustration(illustration);
-       return "插画保存成功！ ID 是：" + illustration.getId();
+   public String addIllustration(@Valid @RequestBody IllustrationDTO illustrationDTO){
+       inventoryService.addIllustration(illustrationDTO);
+       return "插画保存成功！ ID 是：" + illustrationDTO.getId();
 
    }
 

@@ -49,13 +49,15 @@ public class InventoryService {
     }*/
 
     //新增插画
-    public  void addIllustration(Illustration illustration){
+    public  void addIllustration(IllustrationDTO illustrationDTO){
+        Illustration illustration= illustrationMapper.toEntity(illustrationDTO);
         illustrationReposiry.save(illustration);
     }
-    //画廊展示货架
+
 
     //删除插画
     public void deleteIllustration(String id){
+
         illustrationReposiry.deleteById(id);
     }
 
