@@ -1,5 +1,6 @@
 package com.atelier.atelierstore.utils;
 
+import com.atelier.atelierstore.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -27,10 +28,11 @@ public class JwtUtils {
     /*
     Generates a signed JWT token for a given user
      */
-    public String generateToken(String username, String role){
+    public String generateToken(User user){
         return Jwts.builder()
-                .setSubject(username)
-                .claim("role", role)
+                .setSubject(user.getEmail())
+                .claim("username", user.getUsername()) // Display Name
+                .claim("role", user.getRole())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(key, SignatureAlgorithm.HS256)
