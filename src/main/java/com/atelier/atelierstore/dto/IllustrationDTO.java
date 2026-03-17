@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class IllustrationDTO {
-    private String id;
+    private Long id;
 
     @NotBlank(message = "Name is required")
     private String name;

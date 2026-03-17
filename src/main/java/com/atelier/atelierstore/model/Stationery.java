@@ -6,7 +6,7 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "stationery")
 public class Stationery extends BaseItem{
-    public Stationery(String id, String name) {
+    public Stationery(Long id, String name) {
         super(id, name);
     }
 
@@ -50,7 +50,7 @@ public class Stationery extends BaseItem{
         this.stock = stock;
     }
 
-    public Stationery(String id, String name, double price, String category) {
+    public Stationery(Long id, String name, double price, String category) {
         super(id, name);
         this.price = price;
         this.category = category;

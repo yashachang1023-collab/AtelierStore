@@ -8,13 +8,14 @@ import lombok.Data;
 
 public abstract class BaseItem {
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     private String name;
 
     protected BaseItem() {
     }
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
@@ -27,7 +28,7 @@ public abstract class BaseItem {
     }
 
 
-    protected BaseItem(String id, String name) {
+    protected BaseItem(Long id, String name) {
         this.id = id;
         this.name = name;
     }

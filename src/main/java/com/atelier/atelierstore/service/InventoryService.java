@@ -6,7 +6,7 @@ import com.atelier.atelierstore.mapper.IllustrationMapper;
 import com.atelier.atelierstore.model.BaseItem;
 import com.atelier.atelierstore.model.Illustration;
 import com.atelier.atelierstore.model.Stationery;
-import com.atelier.atelierstore.repository.IllustrationReposiry;
+import com.atelier.atelierstore.repository.IllustrationRepository;
 import com.atelier.atelierstore.repository.StationeryRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,16 +24,19 @@ import java.util.stream.Collectors;
 public class InventoryService {
 
     @Autowired
-    private IllustrationReposiry illustrationReposiry;
+    private IllustrationRepository illustrationRepository;
     @Autowired
     private StationeryRepository stationeryRepository;
     @Autowired
     private IllustrationMapper illustrationMapper;
 
+    @Autowired
+    private FileStorageService fileStorageService;
+
     //展示所有插画
     public List<IllustrationDTO> getAllIllustration(){
         log.info(">>>> [业务开始] 正在从数据库获取所有插画作品...");
-        List<IllustrationDTO> illustrationDTOS = illustrationReposiry.findAll().stream()
+        List<IllustrationDTO> illustrationDTOS = illustrationRepository.findAll().stream()
                 .map(illustrationMapper::toDto).collect(Collectors.toList());
         log.info(">>>> [业务结束] 成功转化了 {} 件插画作品。", illustrationDTOS.size());
         return illustrationDTOS;
@@ -51,14 +54,25 @@ public class InventoryService {
     //新增插画
     public  void addIllustration(IllustrationDTO illustrationDTO){
         Illustration illustration= illustrationMapper.toEntity(illustrationDTO);
-        illustrationReposiry.save(illustration);
+        illustrationRepository.save(illustration);
     }
 
 
-    //删除插画
-    public void deleteIllustration(String id){
+    /**
+     * Deletes an illustration from the database and its physical file from storage.
+     * @param id the ID of the illustration to delete
+     */
+    public void deleteIllustration(Long id) {
+        // 1. Find the illustration first to get the image filename
+        Illustration illustration = illustrationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Artwork not found with ID: " + id));
 
-        illustrationReposiry.deleteById(id);
+        // 2. Delete the record from the database
+        illustrationRepository.deleteById(id);
+
+        // 3. Delete the physical file from the /uploads folder
+        // illustration.getImageUrl() contains the UUID filename (e.g., "7dc3aa...jpg")
+        fileStorageService.deleteFile(illustration.getImageUrl());
     }
 
     //购买文具

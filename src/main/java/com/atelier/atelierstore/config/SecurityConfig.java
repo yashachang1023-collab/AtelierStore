@@ -72,6 +72,8 @@ public class SecurityConfig {
 
                         // 【关键的一行】允许所有浏览器发来的预检请求（OPTIONS）直接通过
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+                        // This allows the browser to fetch the actual image files to display them in the UI
+                        .requestMatchers("/uploads/**").permitAll()
                         //Allow all users to browse the gallery and stationery.
                         .requestMatchers(HttpMethod.GET, "/api/gallery/**", "/api/stationery/**").permitAll()
                         //Allow public access to authentication endpoints (login/register)
