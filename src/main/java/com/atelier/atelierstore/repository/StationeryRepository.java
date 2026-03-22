@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface StationeryRepository extends JpaRepository<Stationery, String> {
+public interface StationeryRepository extends JpaRepository<Stationery, Long> {
     // 考点：Query Method 命名规范
     // 只要你叫这个名字，Spring 就会自动生成 SQL: SELECT * FROM stationery WHERE category = ?
     List<Stationery> findByCategoryContainingIgnoreCase(String category);
