@@ -1,56 +1,45 @@
 package com.atelier.atelierstore.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(name = "stationery")
+@Table(name = "stationeries")
 public class Stationery extends BaseItem{
-    public Stationery(Long id, String name) {
-        super(id, name);
-    }
 
-    private double price;
+    @Column(precision = 10, scale = 2, nullable = false)
+    private BigDecimal price;
+
+    @NotBlank(message = "Category is required")
+    @Column(nullable = false, length = 50)
     private String category;
-    private int stock;
 
-    public int getStock() {
-        return stock;
-    }
+    @NotNull(message = "Stock is required")
+    @Min(0)
+    @Column(nullable = false)
+    private Integer stock;
 
-    public void setStock(int stock) {
-        this.stock = stock;
-    }
+    // Optimistic Locking: Prevents concurrent update issues (e.g., selling more than available)
+    // This addresses Interview Question #16
+    @Version
+    private Long version;
 
-
-
-    public Stationery() {
-
-    }
-
-    public double getPrice() {
-        return price;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public Stationery(double price, String category, int stock) {
-        this.price = price;
-        this.category = category;
-        this.stock = stock;
-    }
-
-    public Stationery(Long id, String name, double price, String category) {
+    public Stationery(Long id, String name, BigDecimal price, String category) {
         super(id, name);
         this.price = price;
         this.category = category;
@@ -58,6 +47,9 @@ public class Stationery extends BaseItem{
 
     @Override
     public void displayInfo() {
-        System.out.println("【文具周边】ID: " + getId() + " | 名称: " + getName() + " | 价格: " + getPrice() + "€ | 分类: " + getCategory());
+        System.out.println(String.format(
+                "【Stationery Shop】ID: %d | Name: %s | Price: €%s | Category: %s | Stock: %d",
+                getId(), getName(), price.toPlainString(), category, stock
+        ));
     }
 }

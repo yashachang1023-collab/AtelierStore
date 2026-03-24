@@ -15,36 +15,45 @@ import java.util.List;
 @RequiredArgsConstructor
 public class StationeryServiceImpl implements StationeryService{
     private final StationeryRepository stationeryRepository;
-    //购买文具
+    /**
+     * Executes the purchase logic.
+     * @Transactional ensures that if any part fails, the entire process rolls back.
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void buyStationery(Long id, Integer num) throws OutOfStockException {
-        // 1. 根据 ID 找到对应的文具
+        // 1. Fetch the item
         // .orElseThrow 是 Java 8 Optional 的写法，如果找不到就抛出异常
         Stationery stationery = stationeryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("该文具不存在"));
+                .orElseThrow(() -> new RuntimeException("Item not found with ID: " + id));
 
-        // 2. 检查库存
-        if(stationery.getStock() <= 0){
-            // 触发你自定义的异常
-            throw new OutOfStockException("抱歉" + stationery.getName() + "库存不足！");
+        // 2. Check stock levels
+        if(stationery.getStock() <= num){
+            // Throw custom exception for better API feedback
+            throw new OutOfStockException("Insufficient stock for: " + stationery.getName());
         }
 
-        // 3. 核心业务动作：减库存
+        // 3. Update stock
+        // Note: JPA will automatically check the @Version field here
         stationery.setStock(stationery.getStock() - num);
 
-        // 4. 将改动同步回数据库
+        // 4. Save changes
         stationeryRepository.save(stationery);
 
-        // 💡 程序员视角：
-        // 如果在这一行后面代码突然报错（比如断电了），
-        // 因为有 @Transactional，上面的 setStock 动作会在数据库层面被“撤回”。
+        // If a network error occurs here, the stock won't be deducted
+        // in the database thanks to @Transactional.
     }
 
 
-    //根据类别搜索文具
+    // Search for stationery by category
     @Override
     public List<Stationery> getStationeryByCategory(String category) {
         return stationeryRepository.findByCategoryContainingIgnoreCase(category);
+    }
+
+    //Get all stationery
+    @Override
+    public List<Stationery> getAllStationery() {
+        return stationeryRepository.findAll();
     }
 }

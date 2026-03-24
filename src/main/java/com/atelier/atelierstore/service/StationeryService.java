@@ -8,4 +8,5 @@ import java.util.List;
 public interface StationeryService {
     void buyStationery(Long id, Integer num) throws OutOfStockException;
     List<Stationery> getStationeryByCategory(String category);
+    List<Stationery> getAllStationery();
 }
