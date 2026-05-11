@@ -78,13 +78,6 @@ public class ProductController {
         return ResponseEntity.ok("Illustration with ID " + id + " has been successfully removed.");
     }
 
-    //购买文具
-    @PutMapping("/shop/buy/{id}")
-    public String buyStationery(@PathVariable Long id, @RequestParam(defaultValue = "1") Integer num) throws OutOfStockException {
-
-            stationeryService.buyStationery(id,num);
-            return "购买成功！";
-    }
 
     //按照类别搜索文具
     @GetMapping("/shop/search")

@@ -1,6 +1,9 @@
 package com.atelier.atelierstore.service;
 
 import com.atelier.atelierstore.dto.OrderRequest;
+import com.atelier.atelierstore.exception.ErrorCode;
+import com.atelier.atelierstore.exception.OutOfStockException;
+import com.atelier.atelierstore.exception.ResourceNotFoundException;
 import com.atelier.atelierstore.model.Order;
 import com.atelier.atelierstore.model.OrderItem;
 import com.atelier.atelierstore.model.Stationery;
@@ -41,11 +44,11 @@ public class OrderServiceImpl implements OrderService{
         // 2. Process each item
         for (OrderRequest.OrderItemRequest itemReq : request.getItems()) {
             Stationery stationery = stationeryRepository.findById(itemReq.getStationeryId())
-                    .orElseThrow(() -> new RuntimeException("Product not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
 
             // Concurrency/Stock check
             if (stationery.getStock() < itemReq.getQuantity()) {
-                throw new RuntimeException("Stock not enough for " + stationery.getName());
+                throw new OutOfStockException(ErrorCode.STOCK_INSUFFICIENT);
             }
 
             // Deduct stock (Optimistic Locking @Version works here)

@@ -6,6 +6,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
 //这个类就像是商店的“投诉中心”。不管店里哪里吵架了（抛出异常），都会被引到这里来解决。
@@ -14,16 +15,25 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(OutOfStockException.class)
     public ResponseEntity<ErrorResponse> handleOutOfStock(OutOfStockException e){
-        ErrorResponse error = new ErrorResponse(HttpStatus.BAD_REQUEST.value(),e.getMessage());
+        ErrorCode errorCode = e.getErrorCode();
+        ErrorResponse error = new ErrorResponse(HttpStatus.BAD_REQUEST.value(),errorCode.getCode(), errorCode.getMessage(), LocalDateTime.now());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    // 你还可以拦截其他所有未预料到的异常（比如空指针）
+    /**
+     * Fallback handler for all uncaught or unexpected exceptions (e.g., NullPointerException).
+     * Ensures the API always returns a consistent JSON structure instead of a raw stack trace.
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAll(Exception e) {
+        e.printStackTrace();
+
+        ErrorCode errorCode = ErrorCode.SYSTEM_ERROR;
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "服务器开小差了，请稍后再试"
+                errorCode.getCode(),
+                errorCode.getMessage(),
+                LocalDateTime.now()
         );
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -48,7 +58,10 @@ public class GlobalExceptionHandler {
 
         // Step 4: Encapsulation.
         // Use the custom ErrorResponse class to ensure a consistent error structure across the entire API.
-        ErrorResponse error = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), errorMessage);
+        ErrorResponse error = new ErrorResponse(HttpStatus.BAD_REQUEST.value(),
+                ErrorCode.VALIDATION_ERROR.getCode(),
+                errorMessage,
+                LocalDateTime.now());
 
         // Step 5: Return the response with an explicit HTTP 400 (Bad Request) status.
         // 400 is the standard status for client-side input errors.
