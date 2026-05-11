@@ -37,7 +37,8 @@ public class Order {
 
     // Relationship: One Order has many OrderItems
     // cascade = CascadeType.ALL means if we save the Order, items are saved automatically.
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    //Explicitly defined for clarity, even though it's the default. fetch = FetchType.LAZY.
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<OrderItem> items = new ArrayList<>();
 }

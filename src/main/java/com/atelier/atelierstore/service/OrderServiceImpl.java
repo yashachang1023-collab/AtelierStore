@@ -7,6 +7,7 @@ import com.atelier.atelierstore.model.Stationery;
 import com.atelier.atelierstore.repository.OrderRepository;
 import com.atelier.atelierstore.repository.StationeryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,9 @@ import java.util.ArrayList;
 public class OrderServiceImpl implements OrderService{
     private final OrderRepository orderRepository;
     private final StationeryRepository stationeryRepository;
+
+    @Value("${app.finance.vat-rate}")
+    private BigDecimal vatRate;
 
     @Override
     @Transactional(rollbackFor = Exception.class) // Ensures atomicity
@@ -49,7 +53,6 @@ public class OrderServiceImpl implements OrderService{
             stationeryRepository.save(stationery);
 
             // 3. Create Item Snapshot
-            BigDecimal vatRate = new BigDecimal("0.19"); // Default German VAT 19%
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
                     .stationery(stationery)
