@@ -13,11 +13,15 @@ import java.util.stream.Collectors;
 @ControllerAdvice // 告诉 Spring：我是全公司的“投诉中心”
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(OutOfStockException.class)
-    public ResponseEntity<ErrorResponse> handleOutOfStock(OutOfStockException e){
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException e){
         ErrorCode errorCode = e.getErrorCode();
-        ErrorResponse error = new ErrorResponse(HttpStatus.BAD_REQUEST.value(),errorCode.getCode(), errorCode.getMessage(), LocalDateTime.now());
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        ErrorResponse error = new ErrorResponse(
+                e.getHttpStatus().value(),
+                errorCode.getCode(),
+                errorCode.getMessage(),
+                LocalDateTime.now());
+        return new ResponseEntity<>(error, e.getHttpStatus());
     }
 
     /**

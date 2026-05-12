@@ -1,14 +1,10 @@
 package com.atelier.atelierstore.exception;
 
-import lombok.Getter;
+import org.springframework.http.HttpStatus;
 
-@Getter
-public class OutOfStockException extends RuntimeException {
-    private final ErrorCode errorCode;
+public class OutOfStockException extends BusinessException {
 
     public OutOfStockException(ErrorCode errorCode) {
-        // Initialize the base RuntimeException with the enum's message.
-        super(errorCode.getMessage());
-        this.errorCode = errorCode;
+        super(errorCode, HttpStatus.BAD_REQUEST);
     }
 }

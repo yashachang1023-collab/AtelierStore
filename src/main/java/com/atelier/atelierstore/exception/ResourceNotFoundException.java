@@ -1,14 +1,10 @@
 package com.atelier.atelierstore.exception;
 
-import lombok.Getter;
+import org.springframework.http.HttpStatus;
 
-@Getter
-public class ResourceNotFoundException extends RuntimeException {
-    private final ErrorCode errorCode;
+public class ResourceNotFoundException extends BusinessException {
 
     public ResourceNotFoundException(ErrorCode errorCode) {
-        // Initialize the base RuntimeException with the enum's message.
-        super(errorCode.getMessage());
-        this.errorCode = errorCode;
+            super(errorCode, HttpStatus.NOT_FOUND);
     }
 }
