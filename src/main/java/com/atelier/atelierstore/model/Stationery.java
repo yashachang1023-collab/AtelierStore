@@ -29,6 +29,10 @@ public class Stationery extends BaseItem{
     @Column(nullable = false, length = 50)
     private String category;
 
+    @NotBlank(message = "Image is required")
+    @Column(nullable = false, length = 255)
+    private String imageUrl;
+
     @NotNull(message = "Stock is required")
     @Min(0)
     @Column(nullable = false)

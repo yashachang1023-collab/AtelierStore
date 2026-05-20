@@ -1,9 +1,11 @@
 package com.atelier.atelierstore.service;
 
 import com.atelier.atelierstore.dto.OrderRequest;
+import com.atelier.atelierstore.dto.OrderResponse;
 import com.atelier.atelierstore.exception.ErrorCode;
 import com.atelier.atelierstore.exception.OutOfStockException;
 import com.atelier.atelierstore.exception.ResourceNotFoundException;
+import com.atelier.atelierstore.mapper.OrderMapper;
 import com.atelier.atelierstore.model.Order;
 import com.atelier.atelierstore.model.OrderItem;
 import com.atelier.atelierstore.model.Stationery;
@@ -17,12 +19,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService{
     private final OrderRepository orderRepository;
     private final StationeryRepository stationeryRepository;
+    private final OrderMapper orderMapper;
 
     @Value("${app.finance.vat-rate}")
     private BigDecimal vatRate;
@@ -77,6 +81,16 @@ public class OrderServiceImpl implements OrderService{
 
         // 4. Save entire object graph due to CascadeType.ALL
         return orderRepository.save(order);
+    }
+
+    @Override
+    @Transactional(readOnly = true) //
+    public List<OrderResponse> getOrderHistory(String email) {
+        // 1. 调用高性能查询
+        List<Order> orders = orderRepository.findHistoryByEmail(email);
+
+        // 2. 转换成 Response 发出去
+        return orderMapper.toResponseList(orders);
     }
 
 }
