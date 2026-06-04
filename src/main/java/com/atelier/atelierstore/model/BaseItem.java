@@ -2,9 +2,11 @@ package com.atelier.atelierstore.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @MappedSuperclass
+@SuperBuilder
 
 public abstract class BaseItem {
     @Id

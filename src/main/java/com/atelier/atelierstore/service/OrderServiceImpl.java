@@ -2,9 +2,7 @@ package com.atelier.atelierstore.service;
 
 import com.atelier.atelierstore.dto.OrderRequest;
 import com.atelier.atelierstore.dto.OrderResponse;
-import com.atelier.atelierstore.exception.ErrorCode;
-import com.atelier.atelierstore.exception.OutOfStockException;
-import com.atelier.atelierstore.exception.ResourceNotFoundException;
+import com.atelier.atelierstore.exception.*;
 import com.atelier.atelierstore.mapper.OrderMapper;
 import com.atelier.atelierstore.model.Order;
 import com.atelier.atelierstore.model.OrderItem;
@@ -17,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,10 +33,17 @@ public class OrderServiceImpl implements OrderService{
     @Override
     @Transactional(rollbackFor = Exception.class) // Ensures atomicity
     public Order placeOrder(String email, OrderRequest request){
+        if (request.items() == null || request.items().isEmpty()) {
+            throw new InvalidOrderException();
+        }
+        if (email == null || email.isBlank()) {
+            throw new InvalidIdentityException();
+        }
+
         // 1. Initialize Order with metadata
         Order order = Order.builder()
                 .customerEmail(email)
-                .deliveryAddressSnapshot(request.getDeliveryAddress())
+                .deliveryAddressSnapshot(request.deliveryAddress())
                 .status("PENDING")
                 .createdAt(LocalDateTime.now())
                 .items(new ArrayList<>())
@@ -46,24 +52,24 @@ public class OrderServiceImpl implements OrderService{
         BigDecimal totalVat = BigDecimal.ZERO;
 
         // 2. Process each item
-        for (OrderRequest.OrderItemRequest itemReq : request.getItems()) {
-            Stationery stationery = stationeryRepository.findById(itemReq.getStationeryId())
+        for (OrderRequest.OrderItemRequest itemReq : request.items()) {
+            Stationery stationery = stationeryRepository.findById(itemReq.stationeryId())
                     .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
 
             // Concurrency/Stock check
-            if (stationery.getStock() < itemReq.getQuantity()) {
+            if (stationery.getStock() < itemReq.quantity()) {
                 throw new OutOfStockException(ErrorCode.STOCK_INSUFFICIENT);
             }
 
             // Deduct stock (Optimistic Locking @Version works here)
-            stationery.setStock(stationery.getStock() - itemReq.getQuantity());
+            stationery.setStock(stationery.getStock() - itemReq.quantity());
             stationeryRepository.save(stationery);
 
             // 3. Create Item Snapshot
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
                     .stationery(stationery)
-                    .quantity(itemReq.getQuantity())
+                    .quantity(itemReq.quantity())
                     .priceAtPurchase(stationery.getPrice())
                     .vatRateAtPurchase(vatRate)
                     .build();
@@ -71,9 +77,17 @@ public class OrderServiceImpl implements OrderService{
             order.getItems().add(orderItem);
 
             // Calculations
-            BigDecimal itemTotal = stationery.getPrice().multiply(new BigDecimal(itemReq.getQuantity()));
+            BigDecimal itemTotal = stationery.getPrice().multiply(new BigDecimal(itemReq.quantity()));
             total = total.add(itemTotal);
-            totalVat = totalVat.add(itemTotal.multiply(vatRate));
+            // Extract VAT from the tax-inclusive total
+            // Formula: VAT = Total - (Total / 1.19)
+            BigDecimal divisor = BigDecimal.ONE.add(vatRate); // e.g., 1.19
+            // Calculate the Net Amount (tax-exclusive price)
+            BigDecimal netAmount = itemTotal.divide(divisor, 4, RoundingMode.HALF_UP);
+            // The difference is the VAT portion
+            BigDecimal vatAmount = itemTotal.subtract(netAmount);
+
+            totalVat = totalVat.add(vatAmount);
         }
 
         order.setTotalAmount(total);

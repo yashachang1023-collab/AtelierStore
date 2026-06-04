@@ -1,17 +1,22 @@
 package com.atelier.atelierstore.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@Data
-public class OrderRequest {
-    private String deliveryAddress;
-    private List<OrderItemRequest> items;
 
-    @Data
-    public static class OrderItemRequest {
-        private Long stationeryId;
-        private Integer quantity;
+
+public record OrderRequest (
+         String deliveryAddress,
+         List<OrderItemRequest> items
+){
+
+
+    public record OrderItemRequest(
+             Long stationeryId,
+             Integer quantity) {
+
     }
 }
