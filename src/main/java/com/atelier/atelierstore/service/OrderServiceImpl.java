@@ -33,7 +33,7 @@ public class OrderServiceImpl implements OrderService{
     @Override
     @Transactional(rollbackFor = Exception.class) // Ensures atomicity
     public Order placeOrder(String email, OrderRequest request){
-        if (request.items() == null || request.items().isEmpty()) {
+        if (request == null || request.items() == null || request.items().isEmpty()) {
             throw new InvalidOrderException();
         }
         if (email == null || email.isBlank()) {
