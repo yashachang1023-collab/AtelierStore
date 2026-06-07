@@ -34,3 +34,9 @@ build/
 
 # Mac 系统产生的垃圾文件
 .DS_Store
+
+### Local Uploads & Docker Data ###
+uploads/
+.docker/
+.env
+.env.local

@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # Database Service (MySQL 8.0)
+  # ==========================================
+  mysql-db:
+    image: mysql:8.0
+    container_name: atelier-mysql
+    environment:
+      MYSQL_DATABASE: atelier_store
+      # Aligned with your local root password
+      MYSQL_ROOT_PASSWORD: xiaocongzi89
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    # Ensure MySQL is healthy and accepting connections before dependent services start
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # Backend Application Service (Spring Boot)
+  # ==========================================
+  app:
+    build: .
+    container_name: atelier-app
+    ports:
+      - "8080:8080"
+    environment:
+      # Use the container name 'mysql-db' instead of 'localhost'
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/atelier_store?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=xiaocongzi89
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    # Prevent the app from starting until the database container passes its healthcheck
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    # Mount the file upload directory to persist illustration files across container Lifecycles
+    volumes:
+      - upload_data:/app/uploads/illustrations
+
+volumes:
+  # Persistent volume for MySQL database data
+  mysql_data:
+  # Persistent volume for uploaded illustration files
+  upload_data:
